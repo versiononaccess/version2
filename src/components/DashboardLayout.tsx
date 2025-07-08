@@ -16,10 +16,11 @@ import {
   X,
   ChefHat,
   Crown,
-  RefreshCw,
   ChevronLeft,
   LogOut,
-  Wallet
+  Wallet,
+  ChevronDown,
+  User
 } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,8 +30,8 @@ const DashboardLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [timeRange, setTimeRange] = useState('7d');
-  const [refreshing, setRefreshing] = useState(false);
   const [isPro, setIsPro] = useState(false);
   const [showProAnimation, setShowProAnimation] = useState(false);
   const [showCustomerWallet, setShowCustomerWallet] = useState(false);
@@ -58,12 +59,6 @@ const DashboardLayout: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    refreshData();
-    setTimeout(() => setRefreshing(false), 2000);
-  };
-
   const handleUpgrade = (plan: string) => {
     setShowProAnimation(true);
     setIsPro(true);
@@ -80,6 +75,32 @@ const DashboardLayout: React.FC = () => {
     } catch (error) {
       console.error('Error signing out:', error);
     }
+  };
+
+  // Get user initials from user metadata or email
+  const getUserInitials = () => {
+    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+      return `${user.user_metadata.first_name[0]}${user.user_metadata.last_name[0]}`.toUpperCase();
+    }
+    if (user?.email) {
+      const emailParts = user.email.split('@')[0].split('.');
+      if (emailParts.length >= 2) {
+        return `${emailParts[0][0]}${emailParts[1][0]}`.toUpperCase();
+      }
+      return user.email.substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+      return `${user.user_metadata.first_name} ${user.user_metadata.last_name}`;
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'User';
   };
 
   // Enhanced Golden Chef Hat Component for Pro Badge
@@ -270,10 +291,10 @@ const DashboardLayout: React.FC = () => {
             <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
               <div className="flex items-center gap-3 mb-3">
                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#1E2A78] to-[#3B4B9A] text-white flex items-center justify-center shadow-lg">
-                  <span className="font-medium text-sm">{currentUser?.avatar || 'U'}</span>
+                  <span className="font-medium text-sm">{getUserInitials()}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{currentUser?.name || 'User'}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">{getUserDisplayName()}</p>
                   <p className="text-xs text-gray-500 truncate">{currentUser?.role || 'Staff'}</p>
                 </div>
               </div>
@@ -344,14 +365,6 @@ const DashboardLayout: React.FC = () => {
                   <option value="90d">Last 90 days</option>
                 </select>
 
-                <button 
-                  onClick={handleRefresh}
-                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200 active:scale-95"
-                  disabled={refreshing}
-                >
-                  <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
-                </button>
-
                 <button
                   onClick={() => setShowCustomerWallet(true)}
                   className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2 text-sm font-medium"
@@ -396,10 +409,84 @@ const DashboardLayout: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{currentUser?.name || 'User'}</p>
-                    <p className="text-xs text-gray-500">{currentUser?.role || 'Staff Member'}</p>
+                <div className="flex items-center gap-3 relative">
+                  <button
+                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">{getUserDisplayName()}</p>
+                      <p className="text-xs text-gray-500">{currentUser?.role || 'Restaurant Owner'}</p>
+                    </div>
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#1E2A78] to-[#3B4B9A] text-white flex items-center justify-center shadow-lg">
+                      <span className="font-medium text-sm">{getUserInitials()}</span>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* User Dropdown */}
+                  {showUserDropdown && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <p className="text-sm font-medium text-gray-900">{getUserDisplayName()}</p>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowUserDropdown(false);
+                          // Add profile/settings navigation here if needed
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <User className="h-4 w-4" />
+                        Profile Settings
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowUserDropdown(false);
+                          handleSignOut();
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+
+                  {isPro && (
+                    <div className="ml-2">
+                      <GoldenChefHat />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="pt-16 lg:pt-16 min-h-screen">
+          <div className="p-4 lg:p-6" style={{ scrollBehavior: 'auto' }}>
+            <Outlet context={{ onUpgrade: handleUpgrade }} />
+          </div>
+        </main>
+      </div>
+
+      {/* Click outside to close dropdowns */}
+      {(showNotifications || showUserDropdown) && (
+        <div 
+          className="fixed inset-0 z-30" 
+          onClick={() => {
+            setShowNotifications(false);
+            setShowUserDropdown(false);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+export default DashboardLayout;
                   </div>
                   <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#1E2A78] to-[#3B4B9A] text-white flex items-center justify-center shadow-lg">
                     <span className="font-medium text-sm">{currentUser?.avatar || 'U'}</span>
