@@ -487,25 +487,3 @@ const DashboardLayout: React.FC = () => {
 };
 
 export default DashboardLayout;
-                  </div>
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#1E2A78] to-[#3B4B9A] text-white flex items-center justify-center shadow-lg">
-                    <span className="font-medium text-sm">{currentUser?.avatar || 'U'}</span>
-                  </div>
-                  {isPro && <GoldenChefHat />}
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className="pt-16 lg:pt-16 min-h-screen">
-          <div className="p-4 lg:p-6" style={{ scrollBehavior: 'auto' }}>
-            <Outlet context={{ onUpgrade: handleUpgrade }} />
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-};
-
-export default DashboardLayout;
