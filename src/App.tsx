@@ -32,18 +32,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#1E2A78] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-          <p className="text-xs text-gray-400 mt-2">If this takes too long, check the console for errors</p>
-        </div>
-      </div>
-    );
-  }
-
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
