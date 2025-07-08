@@ -293,14 +293,10 @@ const DashboardLayout: React.FC = () => {
         {/* User Profile Section */}
         {isSidebarOpen && user && (
           <div className="absolute bottom-16 left-4 right-4">
-            <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 border border-gray-200 shadow-sm text-center">
+              <div className="flex items-center justify-center">
                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#1E2A78] to-[#3B4B9A] text-white flex items-center justify-center shadow-lg">
                   <span className="font-medium text-sm">{getUserInitials()}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mb-1"></div>
-                  <p className="text-xs text-gray-500 truncate">Online</p>
                 </div>
               </div>
             </div>
@@ -424,7 +420,7 @@ const DashboardLayout: React.FC = () => {
 
                   {/* User Dropdown */}
                   {showUserDropdown && (
-                    <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in-0 zoom-in-95 duration-200">
+                    <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-[60] animate-in fade-in-0 zoom-in-95 duration-200">
                       <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#1E2A78] to-[#3B4B9A] text-white flex items-center justify-center shadow-lg">
@@ -439,7 +435,9 @@ const DashboardLayout: React.FC = () => {
                       </div>
                       
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setShowUserDropdown(false);
                           // Add profile/settings navigation here if needed
                         }}
@@ -457,9 +455,15 @@ const DashboardLayout: React.FC = () => {
                       <div className="border-t border-gray-100 my-1"></div>
                       
                       <button
-                        onClick={() => {
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setShowUserDropdown(false);
-                          handleSignOut().catch(console.error);
+                          try {
+                            await handleSignOut();
+                          } catch (error) {
+                            console.error('Sign out error:', error);
+                          }
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-all duration-200 group"
                       >
@@ -495,7 +499,7 @@ const DashboardLayout: React.FC = () => {
       {/* Click outside to close dropdowns */}
       {(showNotifications || showUserDropdown) && (
         <div 
-          className="fixed inset-0 z-40" 
+          className="fixed inset-0 z-50" 
           onClick={() => {
             setShowNotifications(false);
             setShowUserDropdown(false);
