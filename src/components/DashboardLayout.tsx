@@ -298,13 +298,6 @@ const DashboardLayout: React.FC = () => {
                   <p className="text-xs text-gray-500 truncate">{currentUser?.role || 'Staff'}</p>
                 </div>
               </div>
-              <button
-                onClick={handleSignOut}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </button>
             </div>
           </div>
         )}
@@ -426,30 +419,52 @@ const DashboardLayout: React.FC = () => {
 
                   {/* User Dropdown */}
                   {showUserDropdown && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">{getUserDisplayName()}</p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
+                    <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in-0 zoom-in-95 duration-200">
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#1E2A78] to-[#3B4B9A] text-white flex items-center justify-center shadow-lg">
+                            <span className="font-medium text-sm">{getUserInitials()}</span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">{getUserDisplayName()}</p>
+                            <p className="text-xs text-gray-500">{user?.email}</p>
+                            <p className="text-xs text-blue-600 font-medium">{currentUser?.role || 'Restaurant Owner'}</p>
+                          </div>
+                        </div>
                       </div>
+                      
                       <button
                         onClick={() => {
                           setShowUserDropdown(false);
                           // Add profile/settings navigation here if needed
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 group"
                       >
-                        <User className="h-4 w-4" />
-                        Profile Settings
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                          <User className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Profile Settings</p>
+                          <p className="text-xs text-gray-500">Manage your account</p>
+                        </div>
                       </button>
+                      
+                      <div className="border-t border-gray-100 my-1"></div>
+                      
                       <button
                         onClick={() => {
                           setShowUserDropdown(false);
                           handleSignOut();
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-all duration-200 group"
                       >
-                        <LogOut className="h-4 w-4" />
-                        Sign Out
+                        <div className="w-8 h-8 rounded-lg bg-red-100 group-hover:bg-red-200 flex items-center justify-center transition-colors">
+                          <LogOut className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Sign Out</p>
+                          <p className="text-xs text-red-500">End your session</p>
+                        </div>
                       </button>
                     </div>
                   )}
@@ -475,7 +490,7 @@ const DashboardLayout: React.FC = () => {
       {/* Click outside to close dropdowns */}
       {(showNotifications || showUserDropdown) && (
         <div 
-          className="fixed inset-0 z-30" 
+          className="fixed inset-0 z-40" 
           onClick={() => {
             setShowNotifications(false);
             setShowUserDropdown(false);
