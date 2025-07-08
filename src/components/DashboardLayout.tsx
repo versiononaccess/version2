@@ -291,21 +291,10 @@ const DashboardLayout: React.FC = () => {
         )}
 
         {/* User Profile Section */}
-        {isSidebarOpen && user && (
-          <div className="absolute bottom-16 left-4 right-4">
-            <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 border border-gray-200 shadow-sm text-center">
-              <div className="flex items-center justify-center">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#1E2A78] to-[#3B4B9A] text-white flex items-center justify-center shadow-lg">
-                  <span className="font-medium text-sm">{getUserInitials()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Pro upgrade section */}
         {!isPro && isSidebarOpen && (
-          <div className="absolute bottom-32 left-4 right-4">
+          <div className="absolute bottom-16 left-4 right-4">
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
               <div className="flex items-center gap-2 mb-2">
                 <Crown className="h-4 w-4 text-yellow-500" />
@@ -420,7 +409,12 @@ const DashboardLayout: React.FC = () => {
 
                   {/* User Dropdown */}
                   {showUserDropdown && (
-                    <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-[60] animate-in fade-in-0 zoom-in-95 duration-200">
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setShowUserDropdown(false)}
+                      />
+                      <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-50">
                       <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#1E2A78] to-[#3B4B9A] text-white flex items-center justify-center shadow-lg">
@@ -435,13 +429,14 @@ const DashboardLayout: React.FC = () => {
                       </div>
                       
                       <button
-                        onClick={(e) => {
+                        onMouseDown={(e) => {
                           e.preventDefault();
-                          e.stopPropagation();
-                          setShowUserDropdown(false);
-                          // Add profile/settings navigation here if needed
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 group"
+                        onClick={() => {
+                          setShowUserDropdown(false);
+                          navigate('/dashboard/settings');
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 group cursor-pointer"
                       >
                         <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
                           <User className="h-4 w-4" />
@@ -455,17 +450,14 @@ const DashboardLayout: React.FC = () => {
                       <div className="border-t border-gray-100 my-1"></div>
                       
                       <button
-                        onClick={async (e) => {
+                        onMouseDown={(e) => {
                           e.preventDefault();
-                          e.stopPropagation();
-                          setShowUserDropdown(false);
-                          try {
-                            await handleSignOut();
-                          } catch (error) {
-                            console.error('Sign out error:', error);
-                          }
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-all duration-200 group"
+                        onClick={async () => {
+                          setShowUserDropdown(false);
+                          await handleSignOut();
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-all duration-200 group cursor-pointer"
                       >
                         <div className="w-8 h-8 rounded-lg bg-red-100 group-hover:bg-red-200 flex items-center justify-center transition-colors">
                           <LogOut className="h-4 w-4" />
@@ -476,6 +468,7 @@ const DashboardLayout: React.FC = () => {
                         </div>
                       </button>
                     </div>
+                    </>
                   )}
 
                   {isPro && (
@@ -495,17 +488,6 @@ const DashboardLayout: React.FC = () => {
           </div>
         </main>
       </div>
-
-      {/* Click outside to close dropdowns */}
-      {(showNotifications || showUserDropdown) && (
-        <div 
-          className="fixed inset-0 z-50" 
-          onClick={() => {
-            setShowNotifications(false);
-            setShowUserDropdown(false);
-          }}
-        />
-      )}
     </div>
   );
 };
