@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { 
   Users, TrendingUp, Gift, DollarSign, ArrowUpRight, ArrowDownRight,
-  Filter, Download, Eye, MoreVertical, RefreshCw, AlertCircle, Plus
+  Filter, Download, Eye, MoreVertical, RefreshCw, AlertCircle, Plus,
+  Target, Percent, ShoppingCart, Repeat, TrendingDown
 } from 'lucide-react';
 import { 
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, 
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, ComposedChart, Legend
 } from 'recharts';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,9 +18,11 @@ const DashboardHome = () => {
   const {
     stats,
     recentActivity,
-    customerData,
+    customerGrowthData,
     rewardDistribution,
     weeklyActivity,
+    loyaltyROI,
+    monthlyTrends,
     notifications,
     loading,
     error,
@@ -48,6 +52,14 @@ const DashboardHome = () => {
     return null;
   };
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
   if (loading) {
     return (
       <div className="animate-pulse space-y-6">
@@ -223,7 +235,7 @@ const DashboardHome = () => {
       </div>
 
       {/* Enhanced Charts Grid */}
-      {customerData.length > 0 && (
+      {customerGrowthData.length > 0 && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Customer Growth Chart */}
           <div className="xl:col-span-2 bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300">
@@ -243,13 +255,13 @@ const DashboardHome = () => {
             </div>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={customerData}>
+                <AreaChart data={customerGrowthData}>
                   <defs>
-                    <linearGradient id="customers" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="newCustomers" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#1E2A78" stopOpacity={0.3}/>
                       <stop offset="95%" stopColor="#1E2A78" stopOpacity={0.05}/>
                     </linearGradient>
-                    <linearGradient id="returning" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="returningCustomers" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
                       <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.05}/>
                     </linearGradient>
@@ -269,18 +281,18 @@ const DashboardHome = () => {
                   <Tooltip content={renderCustomTooltip} />
                   <Area
                     type="monotone"
-                    dataKey="customers"
+                    dataKey="newCustomers"
                     stroke="#1E2A78"
                     strokeWidth={3}
-                    fill="url(#customers)"
-                    name="Total Customers"
+                    fill="url(#newCustomers)"
+                    name="New Customers"
                   />
                   <Area
                     type="monotone"
-                    dataKey="returning"
+                    dataKey="returningCustomers"
                     stroke="#3B82F6"
                     strokeWidth={2}
-                    fill="url(#returning)"
+                    fill="url(#returningCustomers)"
                     name="Returning Customers"
                   />
                 </AreaChart>
@@ -308,6 +320,8 @@ const DashboardHome = () => {
                       outerRadius={100}
                       paddingAngle={5}
                       dataKey="value"
+                      animationBegin={0}
+                      animationDuration={800}
                     >
                       {rewardDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -324,7 +338,7 @@ const DashboardHome = () => {
                       className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="text-xs text-gray-600">{item.name}</span>
+                    <span className="text-xs text-gray-600">{item.name} ({item.percentage}%)</span>
                   </div>
                 ))}
               </div>
@@ -333,6 +347,152 @@ const DashboardHome = () => {
         </div>
       )}
 
+      {/* Loyalty Program ROI Analysis */}
+      {loyaltyROI && (
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Loyalty Program ROI</h2>
+              <p className="text-sm text-gray-500">Financial impact and return on investment</p>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+              <TrendingUp className="h-4 w-4" />
+              {loyaltyROI.roi.toFixed(1)}% ROI
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
+              <p className="text-sm text-green-700 mb-1">Total Revenue</p>
+              <p className="text-2xl font-bold text-green-900">{formatCurrency(loyaltyROI.totalRevenue)}</p>
+            </div>
+            
+            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Target className="h-6 w-6 text-blue-600" />
+              </div>
+              <p className="text-sm text-blue-700 mb-1">Loyalty Revenue</p>
+              <p className="text-2xl font-bold text-blue-900">{formatCurrency(loyaltyROI.loyaltyRevenue)}</p>
+            </div>
+            
+            <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-red-50 rounded-xl border border-orange-200">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <TrendingDown className="h-6 w-6 text-orange-600" />
+              </div>
+              <p className="text-sm text-orange-700 mb-1">Reward Costs</p>
+              <p className="text-2xl font-bold text-orange-900">{formatCurrency(loyaltyROI.rewardCosts)}</p>
+            </div>
+            
+            <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-200">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <TrendingUp className="h-6 w-6 text-purple-600" />
+              </div>
+              <p className="text-sm text-purple-700 mb-1">Net Profit</p>
+              <p className="text-2xl font-bold text-purple-900">{formatCurrency(loyaltyROI.netProfit)}</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <ShoppingCart className="h-5 w-5 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">Average Order Value</span>
+              </div>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(loyaltyROI.averageOrderValue)}</p>
+              <p className="text-xs text-gray-500">All customers</p>
+            </div>
+            
+            <div className="text-center p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Repeat className="h-5 w-5 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">Loyalty AOV</span>
+              </div>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(loyaltyROI.loyaltyAOV)}</p>
+              <p className="text-xs text-gray-500">Loyalty customers</p>
+            </div>
+            
+            <div className="text-center p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Percent className="h-5 w-5 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">Retention Rate</span>
+              </div>
+              <p className="text-lg font-bold text-gray-900">{loyaltyROI.retentionRate.toFixed(1)}%</p>
+              <p className="text-xs text-gray-500">Returning customers</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Revenue Trends */}
+      {monthlyTrends.length > 0 && (
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Revenue Trends</h2>
+              <p className="text-sm text-gray-500">Monthly revenue breakdown and loyalty program impact</p>
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#1E2A78]" />
+                <span className="text-gray-600">Total Revenue</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#3B82F6]" />
+                <span className="text-gray-600">Loyalty Revenue</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#10B981]" />
+                <span className="text-gray-600">Net Profit</span>
+              </div>
+            </div>
+          </div>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={monthlyTrends}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis 
+                  dataKey="month" 
+                  axisLine={false}
+                  tickLine={false}
+                  className="text-sm text-gray-500"
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  className="text-sm text-gray-500"
+                  tickFormatter={(value) => `$${value}`}
+                />
+                <Tooltip content={renderCustomTooltip} />
+                <Bar 
+                  dataKey="revenue" 
+                  fill="#1E2A78" 
+                  radius={[4, 4, 0, 0]}
+                  name="Total Revenue ($)"
+                  animationDuration={800}
+                />
+                <Bar 
+                  dataKey="loyaltyRevenue" 
+                  fill="#3B82F6" 
+                  radius={[4, 4, 0, 0]}
+                  name="Loyalty Revenue ($)"
+                  animationDuration={1000}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="netProfit" 
+                  stroke="#10B981" 
+                  strokeWidth={3}
+                  name="Net Profit ($)"
+                  animationDuration={1200}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
       {/* Weekly Activity Chart */}
       {weeklyActivity.length > 0 && (
         <div className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300">
@@ -375,12 +535,14 @@ const DashboardHome = () => {
                   fill="#1E2A78" 
                   radius={[4, 4, 0, 0]}
                   name="Signups"
+                  animationDuration={800}
                 />
                 <Bar 
                   dataKey="rewards" 
                   fill="#8B5CF6" 
                   radius={[4, 4, 0, 0]}
                   name="Rewards"
+                  animationDuration={1000}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -451,7 +613,7 @@ const DashboardHome = () => {
       )}
 
       {/* No Data States */}
-      {recentActivity.length === 0 && !loading && !error && (
+      {recentActivity.length === 0 && customerGrowthData.length === 0 && !loading && !error && (
         <div className="bg-white rounded-2xl p-12 border border-gray-200 text-center">
           <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No Recent Activity</h3>
