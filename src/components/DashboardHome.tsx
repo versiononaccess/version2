@@ -235,9 +235,9 @@ const DashboardHome = () => {
       </div>
 
       {/* Enhanced Charts Grid */}
-      {customerGrowthData.length > 0 && (
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Customer Growth Chart */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Customer Growth Chart */}
+        {customerGrowthData.length > 0 ? (
           <div className="xl:col-span-2 bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -286,6 +286,8 @@ const DashboardHome = () => {
                     strokeWidth={3}
                     fill="url(#newCustomers)"
                     name="New Customers"
+                    animationBegin={200}
+                    animationDuration={1500}
                   />
                   <Area
                     type="monotone"
@@ -294,14 +296,33 @@ const DashboardHome = () => {
                     strokeWidth={2}
                     fill="url(#returningCustomers)"
                     name="Returning Customers"
+                    animationBegin={400}
+                    animationDuration={1500}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
+        ) : (
+          <div className="xl:col-span-2 bg-white rounded-2xl p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Customer Growth</h2>
+                <p className="text-sm text-gray-500">New vs returning customers</p>
+              </div>
+            </div>
+            <div className="h-80 flex items-center justify-center">
+              <div className="text-center">
+                <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No customer data available yet</p>
+                <p className="text-sm text-gray-400">Start adding customers to see growth trends</p>
+              </div>
+            </div>
+          </div>
+        )}
 
-          {/* Reward Distribution */}
-          {rewardDistribution.length > 0 && (
+        {/* Popular Rewards Distribution */}
+        {rewardDistribution.length > 0 ? (
             <div className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -320,8 +341,8 @@ const DashboardHome = () => {
                       outerRadius={100}
                       paddingAngle={5}
                       dataKey="value"
-                      animationBegin={0}
-                      animationDuration={800}
+                      animationBegin={600}
+                      animationDuration={1200}
                     >
                       {rewardDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -343,9 +364,24 @@ const DashboardHome = () => {
                 ))}
               </div>
             </div>
-          )}
-        </div>
-      )}
+        ) : (
+          <div className="bg-white rounded-2xl p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Popular Rewards</h2>
+                <p className="text-sm text-gray-500">Distribution by type</p>
+              </div>
+            </div>
+            <div className="h-64 flex items-center justify-center">
+              <div className="text-center">
+                <Gift className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No reward redemptions yet</p>
+                <p className="text-sm text-gray-400">Rewards will appear here once customers start redeeming</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Loyalty Program ROI Analysis */}
       {loyaltyROI && (

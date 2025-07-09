@@ -315,6 +315,9 @@ export const useDashboardData = (timeRange: string = '7d') => {
   };
 
   const fetchDashboardData = useCallback(async () => {
+    // Add a small delay to ensure proper animation timing
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     try {
       setLoading(true);
       setError(null);
