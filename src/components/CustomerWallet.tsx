@@ -471,11 +471,8 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
               ) : (
                 rewards.map((reward) => {
                   const canRedeem = customer.total_points >= reward.points_required;
-                  const tierAllowed = (
-                    (reward.min_tier === 'bronze') ||
-                    (reward.min_tier === 'silver' && ['silver', 'gold'].includes(customer.current_tier)) ||
-                    (reward.min_tier === 'gold' && customer.current_tier === 'gold')
-                  );
+                  // Tier checking is now handled in the service
+                  const tierAllowed = true;
 
                   return (
                     <div key={reward.id} className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">

@@ -32,6 +32,22 @@ export class RewardService {
     try {
       if (!restaurantId) return [];
 
+      // Get customer tier to filter rewards appropriately
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('current_tier')
+        .eq('id', customerId)
+        .eq('restaurant_id', restaurantId)
+        .single();
+
+      if (customerError) {
+        console.warn('Could not fetch customer tier:', customerError);
+      }
+
+      const customerTier = customer?.current_tier || 'bronze';
+      const tierOrder = { bronze: 0, silver: 1, gold: 2 };
+      const customerTierLevel = tierOrder[customerTier as keyof typeof tierOrder];
+
       const { data, error } = await supabase
         .from('rewards')
         .select('*')
@@ -43,7 +59,13 @@ export class RewardService {
         throw new Error(error.message);
       }
 
-      return data || [];
+      // Filter rewards based on customer tier
+      const availableRewards = (data || []).filter(reward => {
+        const rewardTierLevel = tierOrder[reward.min_tier as keyof typeof tierOrder];
+        return customerTierLevel >= rewardTierLevel;
+      });
+
+      return availableRewards;
     } catch (error: any) {
       console.error('Error in getAvailableRewards:', error);
       return [];
