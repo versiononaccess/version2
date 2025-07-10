@@ -10,6 +10,7 @@ import { CustomerService } from '../services/customerService';
 import { RewardService } from '../services/rewardService';
 import { useAuth } from '../contexts/AuthContext';
 import OnboardingFlow from './OnboardingFlow';
+import RedemptionModal from './RedemptionModal';
 
 interface Customer {
   id: string;
@@ -71,6 +72,8 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
   const { restaurant } = useAuth();
+  const [showRedemptionModal, setShowRedemptionModal] = useState(false);
+  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
 
   useEffect(() => {
     if (customerId && !showOnboarding && restaurant) {
@@ -161,22 +164,34 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
   const handleRedeemReward = async (rewardId: string) => {
     if (!customer || !restaurant) return;
     
+    const reward = rewards.find(r => r.id === rewardId);
+    if (!reward) return;
+    
+    setSelectedReward(reward);
+    setShowRedemptionModal(true);
+  };
+
+  const handleConfirmRedemption = async () => {
+    if (!customer || !restaurant || !selectedReward) return;
+    
     try {
-      setRedeeming(rewardId);
+      setRedeeming(selectedReward.id);
       
-      await RewardService.redeemReward(restaurant.id, customer.id, rewardId);
+      await RewardService.redeemReward(restaurant.id, customer.id, selectedReward.id);
       
       // Refresh customer data to update points
       await fetchCustomerData();
-      
-      // Show success message
-      alert('Reward redeemed successfully!');
     } catch (err: any) {
       console.error('Error redeeming reward:', err);
-      alert(err.message || 'Failed to redeem reward');
+      throw err; // Re-throw to be handled by the modal
     } finally {
       setRedeeming(null);
     }
+  };
+
+  const handleCloseRedemptionModal = () => {
+    setShowRedemptionModal(false);
+    setSelectedReward(null);
   };
 
   const getTierInfo = (tier: string) => {
@@ -462,23 +477,57 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
 
           {activeTab === 'rewards' && (
             <div className="space-y-4">
-              {rewards.length === 0 ? (
+              {loading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl p-4 border border-gray-200 animate-pulse">
+                      <div className="flex items-start gap-4">
+                        <div className="w-16 h-16 bg-gray-200 rounded-xl"></div>
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded mb-4"></div>
+                          <div className="h-10 bg-gray-200 rounded"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : rewards.length === 0 ? (
                 <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm text-center">
                   <Gift className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-gray-900 font-semibold mb-2">No Rewards Available</h3>
-                  <p className="text-gray-600 text-sm">Check back later for new rewards!</p>
+                  <p className="text-gray-600 text-sm">
+                    {restaurant?.name || 'This restaurant'} hasn't added any rewards yet. Check back later for exciting rewards!
+                  </p>
                 </div>
               ) : (
                 rewards.map((reward) => {
                   const canRedeem = customer.total_points >= reward.points_required;
-                  // Tier checking is now handled in the service
-                  const tierAllowed = true;
+                  
+                  // Check tier requirement
+                  const tierOrder = { bronze: 0, silver: 1, gold: 2 };
+                  const customerTierLevel = tierOrder[customer.current_tier as keyof typeof tierOrder];
+                  const rewardTierLevel = tierOrder[reward.min_tier as keyof typeof tierOrder];
+                  const tierAllowed = customerTierLevel >= rewardTierLevel;
+                  
+                  // Check availability
+                  const isAvailable = !reward.total_available || reward.total_redeemed < reward.total_available;
 
                   return (
                     <div key={reward.id} className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
                       <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
-                          <Gift className="h-8 w-8 text-purple-600" />
+                        <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${
+                          reward.category === 'food' ? 'bg-gradient-to-br from-orange-100 to-red-100' :
+                          reward.category === 'beverage' ? 'bg-gradient-to-br from-blue-100 to-cyan-100' :
+                          reward.category === 'discount' ? 'bg-gradient-to-br from-green-100 to-emerald-100' :
+                          reward.category === 'experience' ? 'bg-gradient-to-br from-purple-100 to-violet-100' :
+                          'bg-gradient-to-br from-pink-100 to-rose-100'
+                        }`}>
+                          {reward.category === 'food' ? <Utensils className="h-8 w-8 text-orange-600" /> :
+                           reward.category === 'beverage' ? <Coffee className="h-8 w-8 text-blue-600" /> :
+                           reward.category === 'discount' ? <Percent className="h-8 w-8 text-green-600" /> :
+                           reward.category === 'experience' ? <Star className="h-8 w-8 text-purple-600" /> :
+                           <Gift className="h-8 w-8 text-pink-600" />}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
@@ -487,24 +536,40 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
                               {reward.description && (
                                 <p className="text-gray-600 text-sm mt-1">{reward.description}</p>
                               )}
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  reward.min_tier === 'gold' ? 'bg-yellow-100 text-yellow-800' :
+                                  reward.min_tier === 'silver' ? 'bg-gray-100 text-gray-800' :
+                                  'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {reward.min_tier} tier
+                                </span>
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  reward.category === 'food' ? 'bg-orange-50 text-orange-700' :
+                                  reward.category === 'beverage' ? 'bg-blue-50 text-blue-700' :
+                                  reward.category === 'discount' ? 'bg-green-50 text-green-700' :
+                                  reward.category === 'experience' ? 'bg-purple-50 text-purple-700' :
+                                  'bg-pink-50 text-pink-700'
+                                }`}>
+                                  {reward.category}
+                                </span>
+                                {reward.total_available && (
+                                  <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                                    {reward.total_available - reward.total_redeemed} left
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-gray-900 font-bold">{reward.points_required} pts</p>
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                reward.min_tier === 'gold' ? 'bg-yellow-100 text-yellow-800' :
-                                reward.min_tier === 'silver' ? 'bg-gray-100 text-gray-800' :
-                                'bg-orange-100 text-orange-800'
-                              }`}>
-                                {reward.min_tier} tier
-                              </span>
                             </div>
                           </div>
                           
                           <button
                             onClick={() => handleRedeemReward(reward.id)}
-                            disabled={!canRedeem || !tierAllowed || redeeming === reward.id}
+                            disabled={!canRedeem || !tierAllowed || !isAvailable || redeeming === reward.id}
                             className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${
-                              canRedeem && tierAllowed
+                              canRedeem && tierAllowed && isAvailable
                                 ? 'bg-gradient-to-r from-[#1E2A78] to-[#3B4B9A] text-white hover:shadow-lg'
                                 : 'bg-gray-100 text-gray-500 cursor-not-allowed'
                             }`}
@@ -514,6 +579,8 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
                                 <Loader2 className="h-4 w-4 animate-spin" />
                                 Redeeming...
                               </div>
+                            ) : !isAvailable ? (
+                              'Not Available'
                             ) : !tierAllowed ? (
                               `Requires ${reward.min_tier} tier`
                             ) : !canRedeem ? (
@@ -631,6 +698,16 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
           </div>
         </div>
       )}
+
+      {/* Redemption Modal */}
+      <RedemptionModal
+        isOpen={showRedemptionModal}
+        onClose={handleCloseRedemptionModal}
+        reward={selectedReward}
+        customer={customer}
+        onConfirmRedemption={handleConfirmRedemption}
+        restaurantName={restaurant?.name || 'Restaurant'}
+      />
     </div>
   );
 };
