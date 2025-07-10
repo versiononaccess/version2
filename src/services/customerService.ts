@@ -53,6 +53,8 @@ export class CustomerService {
   static async getCustomerByEmail(restaurantId: string, email: string): Promise<Customer | null> {
     try {
       if (!restaurantId) return null;
+      
+      console.log('🔍 DEBUG: Looking for customer by email:', email, 'in restaurant:', restaurantId);
 
       const { data, error } = await supabase
         .from('customers')
@@ -62,12 +64,14 @@ export class CustomerService {
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
+        console.error('❌ DEBUG: Error finding customer by email:', error);
         throw new Error(error.message);
       }
 
+      console.log('📋 DEBUG: Customer found by email:', data ? `${data.first_name} ${data.last_name}` : 'None');
       return data || null;
     } catch (error: any) {
-      console.error('Error in getCustomerByEmail:', error);
+      console.error('💥 DEBUG: Error in getCustomerByEmail:', error);
       return null;
     }
   }

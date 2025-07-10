@@ -505,16 +505,23 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
                 <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm text-center">
                   <Gift className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-gray-900 font-semibold mb-2">No Rewards Available</h3>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-600 text-sm mb-4">
                     {customer?.current_tier === 'bronze' 
                       ? 'No rewards available for Bronze tier yet. Keep earning points to unlock Silver and Gold rewards!'
                       : 'No rewards available for your tier right now. Check back later for exciting rewards!'
                     }
                   </p>
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="p-3 bg-blue-50 rounded-lg mb-4">
                     <p className="text-blue-800 text-sm">
                       💡 Tip: Earn more points to unlock higher tier rewards!
                     </p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg text-xs text-gray-500">
+                    <p>Debug Info:</p>
+                    <p>Customer: {customer?.first_name} ({customer?.current_tier})</p>
+                    <p>Points: {customer?.total_points}</p>
+                    <p>Restaurant: {restaurant?.name}</p>
+                    <p>Check console for detailed logs</p>
                   </div>
                 </div>
               ) : (
