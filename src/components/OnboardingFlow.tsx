@@ -96,8 +96,10 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, restaurantI
   const handleComplete = async () => {
     setLoading(true);
     try {
+      console.log('🎯 Completing onboarding with data:', formData);
       await onComplete(formData);
     } catch (err: any) {
+      console.error('❌ Onboarding completion failed:', err);
       setError(err.message || 'Something went wrong');
       setLoading(false);
     }

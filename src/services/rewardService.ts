@@ -32,6 +32,23 @@ export class RewardService {
     try {
       if (!restaurantId) return [];
 
+      console.log('🔍 Fetching rewards for restaurant:', restaurantId, 'customer:', customerId);
+      
+      // Get customer tier to filter rewards appropriately
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('current_tier, total_points')
+        .eq('id', customerId)
+        .eq('restaurant_id', restaurantId)
+        .single();
+
+      if (customerError) {
+        console.warn('Could not fetch customer tier:', customerError);
+      }
+
+      const customerTier = customer?.current_tier || 'bronze';
+      console.log('👤 Customer tier:', customerTier);
+
       // Get all active rewards for the restaurant
       const { data, error } = await supabase
         .from('rewards')
@@ -41,10 +58,28 @@ export class RewardService {
         .order('points_required', { ascending: true });
 
       if (error) {
+        console.error('❌ Error fetching rewards:', error);
         throw new Error(error.message);
       }
 
-      return data || [];
+      console.log('🎁 Found rewards:', data?.length || 0);
+      
+      // Filter rewards based on customer tier
+      const tierOrder = { bronze: 0, silver: 1, gold: 2 };
+      const customerTierLevel = tierOrder[customerTier as keyof typeof tierOrder];
+      
+      const availableRewards = (data || []).filter(reward => {
+        const rewardTierLevel = tierOrder[reward.min_tier as keyof typeof tierOrder];
+        const tierAllowed = customerTierLevel >= rewardTierLevel;
+        const isAvailable = !reward.total_available || reward.total_redeemed < reward.total_available;
+        
+        console.log(`🎯 Reward "${reward.name}": tier ${reward.min_tier} (${rewardTierLevel}) vs customer ${customerTier} (${customerTierLevel}) = ${tierAllowed}, available: ${isAvailable}`);
+        
+        return tierAllowed && isAvailable;
+      });
+
+      console.log('✅ Available rewards after filtering:', availableRewards.length);
+      return availableRewards;
     } catch (error: any) {
       console.error('Error in getAvailableRewards:', error);
       return [];

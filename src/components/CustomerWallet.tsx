@@ -77,6 +77,7 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
 
   useEffect(() => {
     if (customerId && !showOnboarding && restaurant) {
+      console.log('🔄 Fetching customer data for:', customerId, 'restaurant:', restaurant.id);
       fetchCustomerData();
     }
   }, [customerId, showOnboarding, restaurant]);
@@ -87,12 +88,20 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('📊 Starting data fetch for customer:', customerId);
 
       const [customerData, rewardsData, transactionsData] = await Promise.all([
         CustomerService.getCustomer(restaurant.id, customerId),
         RewardService.getAvailableRewards(restaurant.id, customerId),
         CustomerService.getCustomerTransactions(restaurant.id, customerId)
       ]);
+
+      console.log('📋 Fetched data:', {
+        customer: customerData?.first_name,
+        rewards: rewardsData?.length,
+        transactions: transactionsData?.length
+      });
 
       setCustomer(customerData);
       setRewards(rewardsData);
@@ -497,8 +506,16 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
                   <Gift className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-gray-900 font-semibold mb-2">No Rewards Available</h3>
                   <p className="text-gray-600 text-sm">
-                    {restaurant?.name || 'This restaurant'} hasn't added any rewards yet. Check back later for exciting rewards!
+                    {customer?.current_tier === 'bronze' 
+                      ? 'No rewards available for Bronze tier yet. Keep earning points to unlock Silver and Gold rewards!'
+                      : 'No rewards available for your tier right now. Check back later for exciting rewards!'
+                    }
                   </p>
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-blue-800 text-sm">
+                      💡 Tip: Earn more points to unlock higher tier rewards!
+                    </p>
+                  </div>
                 </div>
               ) : (
                 rewards.map((reward) => {
