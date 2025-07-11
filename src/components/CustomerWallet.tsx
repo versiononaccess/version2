@@ -142,8 +142,7 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
         setLoading(true);
         const newCustomer = await CustomerService.createCustomer(restaurant.id, {
           first_name: userData.name.split(' ')[0],
-        const redemption = await RewardService.redeemReward(restaurant.id, customer.id, selectedReward.id);
-        console.log('✅ Redemption successful:', redemption);
+          last_name: userData.name.split(' ').slice(1).join(' ') || userData.name.split(' ')[0],
           email: userData.email,
           phone: userData.phone,
           date_of_birth: userData.birthDate && userData.birthDate.trim() !== '' ? userData.birthDate : undefined
