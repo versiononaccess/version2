@@ -76,25 +76,25 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
 
   useEffect(() => {
-    if (customerId && !showOnboarding && restaurant) {
+    if (customer && restaurant && !showOnboarding) {
       console.log('🔄 Fetching customer data for:', customerId, 'restaurant:', restaurant.id);
       fetchCustomerData();
     }
-  }, [customerId, showOnboarding, restaurant]);
+  }, [customer, restaurant, showOnboarding]);
 
   const fetchCustomerData = async () => {
-    if (!customerId || !restaurant) return;
+    if (!customer || !restaurant) return;
     
     try {
       setLoading(true);
       setError(null);
       
-      console.log('📊 Starting data fetch for customer:', customerId);
+      console.log('📊 Starting data fetch for customer:', customer.id);
 
       const [customerData, rewardsData, transactionsData] = await Promise.all([
-        CustomerService.getCustomer(restaurant.id, customerId),
-        RewardService.getAvailableRewards(restaurant.id, customerId),
-        CustomerService.getCustomerTransactions(restaurant.id, customerId)
+        CustomerService.getCustomer(restaurant.id, customer.id),
+        RewardService.getAvailableRewards(restaurant.id, customer.id),
+        CustomerService.getCustomerTransactions(restaurant.id, customer.id)
       ]);
 
       console.log('📋 Fetched data:', {
@@ -103,7 +103,9 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
         transactions: transactionsData?.length
       });
 
-      setCustomer(customerData);
+      if (customerData) {
+        setCustomer(customerData);
+      }
       setRewards(rewardsData);
       setTransactions(transactionsData);
     } catch (err: any) {
@@ -129,7 +131,7 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
         if (existingCustomer) {
           setCustomer(existingCustomer);
           setShowOnboarding(false);
-          await fetchCustomerData();
+          // Data will be fetched automatically by useEffect when customer is set
           return;
         }
       }
@@ -147,8 +149,7 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
         setCustomer(newCustomer);
         setShowOnboarding(false);
         
-        // Fetch initial data
-        await fetchCustomerData();
+        // Data will be fetched automatically by useEffect when customer is set
       } catch (createError: any) {
         if (createError.message.includes('already exists')) {
           // Customer exists, try to find them
@@ -156,7 +157,7 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
           if (existingCustomer) {
             setCustomer(existingCustomer);
             setShowOnboarding(false);
-            await fetchCustomerData();
+            // Data will be fetched automatically by useEffect when customer is set
             return;
           }
         }
