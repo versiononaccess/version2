@@ -4,7 +4,7 @@ import {
   Gift, Crown, Sparkles, Timer, X,
   Loader2, TrendingUp, Award, Heart, Utensils,
   Coffee, CreditCard, MapPin, Clock, Zap, Plus,
-  Minus, QrCode, Share2, Copy, Check, AlertCircle
+  Minus, QrCode, Share2, Copy, Check, AlertCircle, Percent
 } from 'lucide-react';
 import { CustomerService } from '../services/customerService';
 import { RewardService } from '../services/rewardService';
