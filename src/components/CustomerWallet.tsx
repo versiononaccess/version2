@@ -76,11 +76,11 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
 
   useEffect(() => {
-    if (customer && restaurant && !showOnboarding) {
-      console.log('🔄 Fetching customer data for:', customerId, 'restaurant:', restaurant.id);
+    if (customer && restaurant && !showOnboarding && !loading) {
+      console.log('🔄 Fetching customer data for:', customer.id, 'restaurant:', restaurant.id);
       fetchCustomerData();
     }
-  }, [customer, restaurant, showOnboarding]);
+  }, [customer?.id, restaurant?.id, showOnboarding]);
 
   const fetchCustomerData = async () => {
     if (!customer || !restaurant) return;
@@ -98,12 +98,13 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
       ]);
 
       console.log('📋 Fetched data:', {
-        customer: customerData?.first_name,
+        customer: customer.first_name,
         rewards: rewardsData?.length,
         transactions: transactionsData?.length
       });
 
-      if (customerData) {
+      // Update customer data if we got fresh data
+      if (customerData && customerData.id === customer.id) {
         setCustomer(customerData);
       }
       setRewards(rewardsData);
@@ -138,9 +139,11 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
       
       // Create new customer
       try {
+        setLoading(true);
         const newCustomer = await CustomerService.createCustomer(restaurant.id, {
           first_name: userData.name.split(' ')[0],
-          last_name: userData.name.split(' ').slice(1).join(' ') || 'Customer',
+        const redemption = await RewardService.redeemReward(restaurant.id, customer.id, selectedReward.id);
+        console.log('✅ Redemption successful:', redemption);
           email: userData.email,
           phone: userData.phone,
           date_of_birth: userData.birthDate && userData.birthDate.trim() !== '' ? userData.birthDate : undefined
@@ -150,14 +153,18 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
         setShowOnboarding(false);
         
         // Data will be fetched automatically by useEffect when customer is set
-      } catch (createError: any) {
+        const updatedCustomer = await CustomerService.getCustomer(restaurant.id, customer.id);
+        if (updatedCustomer) {
+          setCustomer(updatedCustomer);
+        }
+        
+        setRewards(updatedRewards);
         if (createError.message.includes('already exists')) {
           // Customer exists, try to find them
           const existingCustomer = await CustomerService.getCustomerByEmail(restaurant.id, userData.email);
           if (existingCustomer) {
             setCustomer(existingCustomer);
             setShowOnboarding(false);
-            // Data will be fetched automatically by useEffect when customer is set
             return;
           }
         }
