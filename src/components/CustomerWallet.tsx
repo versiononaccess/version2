@@ -138,39 +138,31 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
       }
       
       // Create new customer
-      try {
-        setLoading(true);
-        const newCustomer = await CustomerService.createCustomer(restaurant.id, {
-          first_name: userData.name.split(' ')[0],
-          last_name: userData.name.split(' ').slice(1).join(' ') || userData.name.split(' ')[0],
-          email: userData.email,
-          phone: userData.phone,
-          date_of_birth: userData.birthDate && userData.birthDate.trim() !== '' ? userData.birthDate : undefined
-        });
+      const newCustomer = await CustomerService.createCustomer(restaurant.id, {
+        first_name: userData.name.split(' ')[0],
+        last_name: userData.name.split(' ').slice(1).join(' ') || userData.name.split(' ')[0],
+        email: userData.email,
+        phone: userData.phone,
+        date_of_birth: userData.birthDate && userData.birthDate.trim() !== '' ? userData.birthDate : undefined
+      });
 
-        setCustomer(newCustomer);
-        setShowOnboarding(false);
-        
-        // Data will be fetched automatically by useEffect when customer is set
-        const updatedCustomer = await CustomerService.getCustomer(restaurant.id, customer.id);
-        if (updatedCustomer) {
-          setCustomer(updatedCustomer);
-        }
-        
-        setRewards(updatedRewards);
-        if (createError.message.includes('already exists')) {
-          // Customer exists, try to find them
+      setCustomer(newCustomer);
+      setShowOnboarding(false);
+    } catch (err: any) {
+      console.error('Error creating customer:', err);
+      if (err.message && err.message.includes('already exists')) {
+        // Customer exists, try to find them
+        try {
           const existingCustomer = await CustomerService.getCustomerByEmail(restaurant.id, userData.email);
           if (existingCustomer) {
             setCustomer(existingCustomer);
             setShowOnboarding(false);
             return;
           }
+        } catch (findErr) {
+          console.error('Error finding existing customer:', findErr);
         }
-        throw createError;
       }
-    } catch (err: any) {
-      console.error('Error creating customer:', err);
       setError(err.message || 'Failed to create customer account');
     } finally {
       setLoading(false);
