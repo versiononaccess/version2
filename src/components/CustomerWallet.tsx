@@ -189,6 +189,10 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
       
       // Refresh customer data to update points
       await fetchCustomerData();
+      
+      // Close modal and show success
+      setShowRedemptionModal(false);
+      setSelectedReward(null);
     } catch (err: any) {
       console.error('Error redeeming reward:', err);
       throw err; // Re-throw to be handled by the modal
@@ -352,16 +356,14 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
           </div>
 
           {/* Points Display */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center">
-              <p className="text-gray-600 text-sm mb-1">Available Points</p>
-              <p className="text-gray-900 font-bold text-2xl">{customer.total_points.toLocaleString()}</p>
+          <div className="text-center mb-4">
+            <p className="text-gray-600 text-sm mb-2">Available Points</p>
+            <div className="relative">
+              <p className="text-gray-900 font-bold text-4xl mb-1">{customer.total_points.toLocaleString()}</p>
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">★</span>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-gray-600 text-sm mb-1">Lifetime Points</p>
-              <p className="text-gray-900 font-bold text-2xl">{customer.lifetime_points.toLocaleString()}</p>
-            </div>
-          </div>
 
           {/* Tier Progress */}
           {tierInfo.nextTier && (
@@ -411,19 +413,7 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
             <div className="space-y-4">
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                      <TrendingUp className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">Total Spent</p>
-                      <p className="text-gray-900 font-bold">${customer.total_spent.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+                <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm col-span-2">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
                       <Heart className="h-5 w-5 text-purple-600" />
@@ -467,7 +457,7 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
                           </div>
                         </div>
                         <span className="text-green-600 font-medium">
-                          +{transaction.points} pts
+                          {transaction.points > 0 ? '+' : ''}{transaction.points} pts
                         </span>
                       </div>
                     ))
@@ -623,6 +613,21 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({
 
           {activeTab === 'history' && (
             <div className="space-y-4">
+              {/* Customer Stats in History */}
+              <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+                <h3 className="text-gray-900 font-semibold mb-3">Account Summary</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 bg-gray-50 rounded-xl">
+                    <p className="text-gray-600 text-sm mb-1">Lifetime Points</p>
+                    <p className="text-gray-900 font-bold text-xl">{customer.lifetime_points.toLocaleString()}</p>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-xl">
+                    <p className="text-gray-600 text-sm mb-1">Total Spent</p>
+                    <p className="text-gray-900 font-bold text-xl">${customer.total_spent.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+
               {transactions.length === 0 ? (
                 <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm text-center">
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
