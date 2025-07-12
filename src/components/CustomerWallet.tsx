@@ -436,21 +436,6 @@ const CustomerWallet: React.FC<CustomerWalletProps> = ({ customerId, onClose }) 
 
             {activeTab === 'history' && (
               <div className="p-6">
-                {/* Account Summary */}
-                <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Account Summary</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <p className="text-gray-600 text-sm">Lifetime Points</p>
-                      <p className="text-gray-900 font-bold text-xl">{customer.lifetime_points.toLocaleString()}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-600 text-sm">Total Spent</p>
-                      <p className="text-gray-900 font-bold text-xl">${customer.total_spent.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Transaction History */}
                 <h4 className="font-semibold text-gray-900 mb-3">Transaction History</h4>
                 {transactions.length > 0 ? (
